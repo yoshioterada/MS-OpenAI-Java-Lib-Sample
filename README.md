@@ -6,9 +6,11 @@ I'm creating the following bug registration and pull request.
 The following issue is being registered for the above problem.  
 [BUG : The OpenAI library does not work in a WebFlux environment because it internally blocks processing](https://github.com/Azure/azure-sdk-for-java/issues/35301)
 
-If the following PR is merged, it will work with the implementation below.  
-It has been confirmed to work in my local environment.  
+If the following PR is merged, the code I have wrote in the comments will be working. I have confirmed that the PR fixes are working properly in my local environment.
+
 [PR FIX: The OpenAI library does not work in a WebFlux environment becaus… #35312](https://github.com/Azure/azure-sdk-for-java/pull/35312)
+
+https://github.com/yoshioterada/MS-OpenAI-Java-Lib-Sample/blob/24f576bca2775b919a5cfe6a9aa3c5c53a443a07/src/main/java/com/yoshio3/SSEOpenAIController.java#L110-L140
 
 If you want to send messages in real time using Server Sent Event, please use the RESTful API implementation below until the above bug is fixed.
 
