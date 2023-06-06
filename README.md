@@ -11,18 +11,10 @@
 ```
 
 本ライブラリを利用する以外に、[RESTful API を利用したサンプル](https://github.com/yoshioterada/Azure-OpenAI-Java-Spring-Sample-for-Chat-GPT-4) もあります。
-If the following PR is merged, the code I have wrote in the comments will be working. I have confirmed that the PR fixes are working properly in my local environment.
-
-[PR FIX: The OpenAI library does not work in a WebFlux environment becaus… #35312](https://github.com/Azure/azure-sdk-for-java/pull/35312)
-
-https://github.com/yoshioterada/MS-OpenAI-Java-Lib-Sample/blob/24f576bca2775b919a5cfe6a9aa3c5c53a443a07/src/main/java/com/yoshio3/SSEOpenAIController.java#L110-L140
-
-If you want to send messages in real time using Server Sent Event, please use the RESTful API implementation below until the above bug is fixed.
-
 
 ## Project Directory Structure
 
-This project includes the following contents.
+このプロジェクトは下記のディレクトリ構成になっています
 
 ```text
 .
