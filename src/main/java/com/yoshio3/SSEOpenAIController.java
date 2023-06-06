@@ -49,7 +49,7 @@ public class SSEOpenAIController {
     @Value("${azure.openai.api.key}")
     private String OPENAI_API_KEY;
 
-    // 接続してきたクライアントの情報を保持する Map
+    // A Map to hold information about connected clients
     private static Map<UUID, Sinks.Many<String>> userSinks;
 
     // Static Initializer
@@ -67,8 +67,8 @@ public class SSEOpenAIController {
                 .buildClient();
     }
 
-    // ページにアクセスした際に、クライアント毎に UUID を作成 (1 対 1 で送受信を行う場合のため)
-    // チャットのように (1対多）で同じ内容を更新したい場合は、この部分の処理は不要
+    // When accessing the page, create a UUID for each client (for 1-on-1 sending and receiving)  
+    // This part of the process is unnecessary if you want to update the same content (1-to-many) like a chat  
     @GetMapping(path = "/openai-gpt4-sse-stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @ResponseBody
     public Flux<String> sseStream(@RequestParam UUID userId) {
@@ -80,7 +80,7 @@ public class SSEOpenAIController {
         return userSink.asFlux().delayElements(Duration.ofMillis(10));
     }
 
-    // 今この実装は問題があって動きません。Issue 登録中です。
+    // There is a problem with this implementation and it is not working. An issue is being registered.  
     // Now following method can't run because there is an issue.
     @PostMapping("/openai-gpt4-sse-submit")
     @ResponseBody
@@ -106,6 +106,38 @@ public class SSEOpenAIController {
                             });
                 });
     }
+
+    // The following issue is being registered for the above problem.  
+    // [BUG] : The OpenAI library does not work in a WebFlux environment because it internally blocks processing  
+    // https://github.com/Azure/azure-sdk-for-java/issues/35301  
+
+    // If the following PR is merged, it will work with the implementation below.  
+    // It has been confirmed to work in my local environment.  
+    // https://github.com/Azure/azure-sdk-for-java/pull/35312
+    // @PostMapping("/openai-gpt4-sse-submit")
+    // @ResponseBody
+    // public void openaiGpt4Sse(@RequestBody String inputText, @RequestParam UUID userId) {
+    //     LOGGER.debug(inputText);
+    //     List<ChatMessage> chatMessages = createMessages(inputText);
+    //     client.getChatCompletionsStream("gpt-4", new ChatCompletionsOptions(chatMessages))
+    //             .subscribe(chatCompletions -> {
+    //                 chatCompletions.getChoices().stream()
+    //                         .map(ChatChoice::getDelta)
+    //                         .map(ChatMessageDelta::getContent)
+    //                         .filter(content -> content != null)
+    //                         .forEach(content -> {   
+    //                             System.out.println(content);
+    //                             Sinks.Many<String> userSink = getUserSink(userId);
+    //                             EmitResult result = userSink.tryEmitNext(content);   
+    //                             showDetailErrorReasonForSSE(result, content, inputText);
+    //                             try {
+    //                                 TimeUnit.MILLISECONDS.sleep(20);
+    //                             } catch (InterruptedException e) {
+    //                                 e.printStackTrace();
+    //                             }
+    //                         });
+    //             });
+    // }
     
     // Return index.html
     @GetMapping("/")
@@ -159,29 +191,29 @@ public class SSEOpenAIController {
     }
 
     private final static String SYSTEM_DEFINITION = """
-            私は、ACME Fitness というオンライン・電子商取 Web サイトのサポート対応担当者です。
-            問い合わせされた内容から、製品、問い合わせ内容、カテゴリ、感情分析を分類し、
-            さらに推奨する返信メッセージを JSON フォーマットに変換し出力します。
-            オンライン、電子商取引で扱う商品以外の問い合わせには、製品は NONE,
-            問い合わせ内容は INVALID、カテゴリは NOT_SUPPORTED、returnmessage は定型分 の JSON を返します。
+        I am a support representative for the ACME Fitness online e-commerce website.  
+        I classify the product, inquiry content, category, and sentiment analysis from the inquiry,  
+        and output the recommended reply message converted to JSON format.  
+        For inquiries not related to products handled online and in e-commerce, the product is NONE,  
+        the inquiry content is INVALID, the category is NOT_SUPPORTED, and the returnmessage is a standard JSON format.
             """;
 
     private final static String USER1 = """
-            こちらで購入した、スマートウォッチ(注文番号 : 12345)がまだ届きません。現在どのような状況か教えてください。
+        I still haven't received the smartwatch I purchased here (order number: 12345). Please tell me what the situation is like now.
                         """;
 
     private final static String ASSISTANT1 = """
             {
-                "products": "スマートウォッチ",
-                "messages": "スマートウォッチ(注文番号 : 12345)がまだ届きません。現在どのような状況か教えてください。",
-                "category": "商品未配達",
-                "emotional": "NEGATIVE",
-                "returnmessage": "状況を確認しますので、しばらくお待ちください"
+            "products": "Smartwatch",  
+            "messages": "I still haven't received the smartwatch I purchased here (order number: 12345). Please tell me what the situation is like now.",  
+            "category": "Product Undelivered",  
+            "emotional": "NEGATIVE",  
+            "returnmessage": "Please wait a moment while we check the situation"
             }
                         """;
 
     private final static String USER2 = """
-            今日は何日ですか？
+        What day is it today?  
             """;
 
     private final static String ASSISTANT2 = """
@@ -190,11 +222,11 @@ public class SSEOpenAIController {
                 "messages": "INVALID",
                 "category": "NOT_SUPPORTED",
                 "emotional": "NONE",
-                "returnmessage": "申し訳ございませんが、私は ACME Fitness のオンラインサポート担当であり、
-                お問い合わせ内容に関する情報は提供できません。
-                お客様の購入商品やサービス、フィードバックに関するお問い合わせには喜んでお答えいたしますので、
-                どうぞお気軽にお問い合わせください。
-                どうぞよろしくお願いいたします。"
+                "returnmessage": "I apologize, but as an online support representative for ACME Fitness,  
+                I cannot provide information about your inquiry.  
+                I would be happy to answer any questions you have about your purchased products, services, or feedback.  
+                Please feel free to contact us with any questions.  
+                Thank you very much for your understanding."  
             }
             """;
 
