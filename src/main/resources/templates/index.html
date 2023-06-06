@@ -81,10 +81,10 @@
             eventSource.addEventListener('message', function (event) {
                 var responseContainer = document.getElementById("responseContainer");
                 // 空白文字対応
-                const replaceWhiteSpace = event.data.replace(/<SPECIAL_WHITE_SPACEr>/g, " ");
-                const finalShowData  = replaceWhiteSpace.replace(/<SPECIAL_LINE_SEPARATOR>/g, "\n");
+                const showData = event.data.replace(/<SPECIAL_WHITE_SPACE>/g, " ");
+                // showData  = showData.replace(/<SPECIAL_LINE_SEPARATOR>/g, "\n");
 
-                responseContainer.textContent += finalShowData;
+                responseContainer.textContent += showData;
                 if (event.id == "CLOSE") {
                     console.log("Received CLOSE event");
                     eventSource.close();
@@ -110,7 +110,7 @@
 </head>
 
 <body>
-    <h1>Virtual E-commerce: ACME Fitness Web Inquiry Page</h1>
+    <h1>仮想電子商取引 ACME Fitness サイト： お問い合わせページ</h1>
     <div class="container">
         <div class="input-container"> <textarea type="text" id="inputText"
                 placeholder="Enter your text here..."></textarea> <button onclick="submitText()">Submit</button> </div>
