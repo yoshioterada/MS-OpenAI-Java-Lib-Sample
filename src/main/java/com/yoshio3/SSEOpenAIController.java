@@ -18,7 +18,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import com.azure.ai.openai.OpenAIClient;
+
+import com.azure.ai.openai.OpenAIAsyncClient;
 import com.azure.ai.openai.OpenAIClientBuilder;
 import com.azure.ai.openai.models.ChatChoice;
 import com.azure.ai.openai.models.ChatCompletionsOptions;
@@ -43,7 +44,7 @@ public class SSEOpenAIController {
 
     // Name of Model
     @Value("${azure.openai.model.name")
-    private String MODEL_NAME ;
+    private String MODEL_NAME;
 
     // Azure OpenAI API Key
     @Value("${azure.openai.api.key}")
@@ -57,18 +58,20 @@ public class SSEOpenAIController {
         userSinks = new ConcurrentHashMap<>();
     }
 
-    private OpenAIClient client;
+    private OpenAIAsyncClient client;
 
     @PostConstruct
     public void init() {
         client = new OpenAIClientBuilder()
-                .credential(new AzureKeyCredential(OPENAI_API_KEY))
                 .endpoint(OPENAI_URL)
-                .buildClient();
+                .credential(new AzureKeyCredential(OPENAI_API_KEY))
+                .buildAsyncClient();
     }
 
-    // When accessing the page, create a UUID for each client (for 1-on-1 sending and receiving)  
-    // This part of the process is unnecessary if you want to update the same content (1-to-many) like a chat  
+    // When accessing the page, create a UUID for each client (for 1-on-1 sending
+    // and receiving)
+    // This part of the process is unnecessary if you want to update the same
+    // content (1-to-many) like a chat
     @GetMapping(path = "/openai-gpt4-sse-stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @ResponseBody
     public Flux<String> sseStream(@RequestParam UUID userId) {
@@ -80,23 +83,29 @@ public class SSEOpenAIController {
         return userSink.asFlux().delayElements(Duration.ofMillis(10));
     }
 
-    // There is a problem with this implementation and it is not working. An issue is being registered.  
-    // Now following method can't run because there is an issue.
+    // クライアントからメッセージを受信し、OpenAI に送信して、
+    // 結果をクライアントに Server Sent Event で送信する
     @PostMapping("/openai-gpt4-sse-submit")
     @ResponseBody
     public void openaiGpt4Sse(@RequestBody String inputText, @RequestParam UUID userId) {
         LOGGER.debug(inputText);
         List<ChatMessage> chatMessages = createMessages(inputText);
         client.getChatCompletionsStream("gpt-4", new ChatCompletionsOptions(chatMessages))
-                .forEach(chatCompletions -> {
+                .subscribe(chatCompletions -> {
                     chatCompletions.getChoices().stream()
                             .map(ChatChoice::getDelta)
                             .map(ChatMessageDelta::getContent)
                             .filter(content -> content != null)
-                            .forEach(content -> {   
-                                System.out.println(content);
+                            .forEach(content -> {
+                                LOGGER.debug(content);
+                                // 空白文字対応 (SSE で空白文字が送信されないため)
+                                if (content.contains(" ")) {
+                                    content = content.replace(" ", "<SPECIAL_WHITE_SPACE>");
+                                }
+                                // SSE でクライアントのブラウザにデータを送信
                                 Sinks.Many<String> userSink = getUserSink(userId);
-                                EmitResult result = userSink.tryEmitNext(content);   
+                                EmitResult result = userSink.tryEmitNext(content);
+                                // エラーが発生した場合は、エラー内容を表示
                                 showDetailErrorReasonForSSE(result, content, inputText);
                                 try {
                                     TimeUnit.MILLISECONDS.sleep(20);
@@ -107,38 +116,6 @@ public class SSEOpenAIController {
                 });
     }
 
-    // The following issue is being registered for the above problem.  
-    // [BUG] : The OpenAI library does not work in a WebFlux environment because it internally blocks processing  
-    // https://github.com/Azure/azure-sdk-for-java/issues/35301  
-
-    // If the following PR is merged, it will work with the implementation below.  
-    // It has been confirmed to work in my local environment.  
-    // https://github.com/Azure/azure-sdk-for-java/pull/35312
-    // @PostMapping("/openai-gpt4-sse-submit")
-    // @ResponseBody
-    // public void openaiGpt4Sse(@RequestBody String inputText, @RequestParam UUID userId) {
-    //     LOGGER.debug(inputText);
-    //     List<ChatMessage> chatMessages = createMessages(inputText);
-    //     client.getChatCompletionsStream("gpt-4", new ChatCompletionsOptions(chatMessages))
-    //             .subscribe(chatCompletions -> {
-    //                 chatCompletions.getChoices().stream()
-    //                         .map(ChatChoice::getDelta)
-    //                         .map(ChatMessageDelta::getContent)
-    //                         .filter(content -> content != null)
-    //                         .forEach(content -> {   
-    //                             System.out.println(content);
-    //                             Sinks.Many<String> userSink = getUserSink(userId);
-    //                             EmitResult result = userSink.tryEmitNext(content);   
-    //                             showDetailErrorReasonForSSE(result, content, inputText);
-    //                             try {
-    //                                 TimeUnit.MILLISECONDS.sleep(20);
-    //                             } catch (InterruptedException e) {
-    //                                 e.printStackTrace();
-    //                             }
-    //                         });
-    //             });
-    // }
-    
     // Return index.html
     @GetMapping("/")
     public String index() {
@@ -159,8 +136,8 @@ public class SSEOpenAIController {
 
     /**
      * Crete ChatMessage list
-     */    
-    private List<ChatMessage> createMessages(String userInput){
+     */
+    private List<ChatMessage> createMessages(String userInput) {
         List<ChatMessage> chatMessages = new ArrayList<>();
         chatMessages.add(new ChatMessage(ChatRole.SYSTEM)
                 .setContent(SYSTEM_DEFINITION));
@@ -171,7 +148,7 @@ public class SSEOpenAIController {
         chatMessages.add(new ChatMessage(ChatRole.USER).setContent(userInput));
         return chatMessages;
     }
- 
+
     // Show Error Message when SSE failed to send the message
     private void showDetailErrorReasonForSSE(EmitResult result, String returnValue, String data) {
         if (result.isFailure()) {
@@ -191,43 +168,21 @@ public class SSEOpenAIController {
     }
 
     private final static String SYSTEM_DEFINITION = """
-        I am a support representative for the ACME Fitness online e-commerce website.  
-        I classify the product, inquiry content, category, and sentiment analysis from the inquiry,  
-        and output the recommended reply message converted to JSON format.  
-        For inquiries not related to products handled online and in e-commerce, the product is NONE,  
-        the inquiry content is INVALID, the category is NOT_SUPPORTED, and the returnmessage is a standard JSON format.
+            私は、ACME Fitness というオンライン・電子商取 Web サイトのサポート対応担当者です。
+            オンライン、電子商取引で扱う商品以外の問い合わせには、お答えできません。
             """;
 
-    private final static String USER1 = """
-        I still haven't received the smartwatch I purchased here (order number: 12345). Please tell me what the situation is like now.
-                        """;
+    private final static String USER1 = "こちらで購入した、スマートウォッチ(注文番号 : 12345)がまだ届きません。現在どのような状況か教えてください。";
 
-    private final static String ASSISTANT1 = """
-            {
-            "products": "Smartwatch",  
-            "messages": "I still haven't received the smartwatch I purchased here (order number: 12345). Please tell me what the situation is like now.",  
-            "category": "Product Undelivered",  
-            "emotional": "NEGATIVE",  
-            "returnmessage": "Please wait a moment while we check the situation"
-            }
-                        """;
+    private final static String ASSISTANT1 = "状況を確認しますので、しばらくお待ちください";
 
-    private final static String USER2 = """
-        What day is it today?  
-            """;
+    private final static String USER2 = "今日は何日ですか？";
 
     private final static String ASSISTANT2 = """
-            {
-                "products": "NONE",
-                "messages": "INVALID",
-                "category": "NOT_SUPPORTED",
-                "emotional": "NONE",
-                "returnmessage": "I apologize, but as an online support representative for ACME Fitness,  
-                I cannot provide information about your inquiry.  
-                I would be happy to answer any questions you have about your purchased products, services, or feedback.  
-                Please feel free to contact us with any questions.  
-                Thank you very much for your understanding."  
-            }
+                申し訳ございませんが、私は ACME Fitness のオンラインサポート担当であり、
+                お問い合わせ内容に関する情報は提供できません。
+                お客様の購入商品やサービス、フィードバックに関するお問い合わせには喜んでお答えいたしますので、
+                どうぞお気軽にお問い合わせください。
+                どうぞよろしくお願いいたします。
             """;
-
 }
