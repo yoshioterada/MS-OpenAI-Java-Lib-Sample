@@ -1,19 +1,17 @@
 # Virtual E-commerce: ACME Fitness Web Inquiry Page
 
-Currently, this program does not work correctly.
-I'm creating the following bug registration and pull request.
+本アプリケーションは、[Azure OpenAI client library for Java - version 1.0.0-beta.1](https://learn.microsoft.com/ja-jp/java/api/overview/azure/ai-openai-readme) を利用して実装した、Server Sent Event を利用して、ChatGPT からの応答を Streaming 形式でブラウザに表示するサンプルです。
 
-The following issue is being registered for the above problem.  
-[BUG : The OpenAI library does not work in a WebFlux environment because it internally blocks processing](https://github.com/Azure/azure-sdk-for-java/issues/35301)
+```java
+		<dependency>
+			<groupId>com.azure</groupId>
+			<artifactId>azure-ai-openai</artifactId>
+			<version>1.0.0-beta.2</version>
+		</dependency>
+```
 
-If the following PR is merged, it will work with the implementation below.  
-It has been confirmed to work in my local environment.  
-[PR FIX: The OpenAI library does not work in a WebFlux environment becaus… #35312](https://github.com/Azure/azure-sdk-for-java/pull/35312)
+本ライブラリを利用する以外に、[RESTful API を利用したサンプル](https://github.com/yoshioterada/Azure-OpenAI-Java-Spring-Sample-for-Chat-GPT-4) もあります。
 
-If you want to send messages in real time using Server Sent Event, please use the RESTful API implementation below until the above bug is fixed.
-
-[REST Version : Azure-OpenAI-Java-Spring-Sample-for-Chat-GPT-4
-Public](https://github.com/yoshioterada/Azure-OpenAI-Java-Spring-Sample-for-Chat-GPT-4)
 
 ## Project Directory Structure
 
