@@ -1,5 +1,20 @@
 # Virtual E-commerce: ACME Fitness Web Inquiry Page
 
+Currently, this program does not work correctly.
+I'm creating the following bug registration and pull request.
+
+The following issue is being registered for the above problem.  
+[BUG : The OpenAI library does not work in a WebFlux environment because it internally blocks processing](https://github.com/Azure/azure-sdk-for-java/issues/35301)
+
+If the following PR is merged, it will work with the implementation below.  
+It has been confirmed to work in my local environment.  
+[PR FIX: The OpenAI library does not work in a WebFlux environment becaus… #35312](https://github.com/Azure/azure-sdk-for-java/pull/35312)
+
+If you want to send messages in real time using Server Sent Event, please use the RESTful API implementation below until the above bug is fixed.
+
+[REST Version : Azure-OpenAI-Java-Spring-Sample-for-Chat-GPT-4
+Public](https://github.com/yoshioterada/Azure-OpenAI-Java-Spring-Sample-for-Chat-GPT-4)
+
 ## Project Directory Structure
 
 This project includes the following contents.
@@ -46,7 +61,7 @@ To try and run this application, the following commands and tools are required.
 2. Maven 3.6.3
 3. Azure Account
 
-## 環境設定
+## Preferences
 
 The `src/main/resources/application.properties` file contains the following information.
 Please edit the OPENAI instance name and connection key below.
