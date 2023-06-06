@@ -11,6 +11,13 @@
 ```
 
 本ライブラリを利用する以外に、[RESTful API を利用したサンプル](https://github.com/yoshioterada/Azure-OpenAI-Java-Spring-Sample-for-Chat-GPT-4) もあります。
+If the following PR is merged, the code I have wrote in the comments will be working. I have confirmed that the PR fixes are working properly in my local environment.
+
+[PR FIX: The OpenAI library does not work in a WebFlux environment becaus… #35312](https://github.com/Azure/azure-sdk-for-java/pull/35312)
+
+https://github.com/yoshioterada/MS-OpenAI-Java-Lib-Sample/blob/24f576bca2775b919a5cfe6a9aa3c5c53a443a07/src/main/java/com/yoshio3/SSEOpenAIController.java#L110-L140
+
+If you want to send messages in real time using Server Sent Event, please use the RESTful API implementation below until the above bug is fixed.
 
 
 ## Project Directory Structure
@@ -61,8 +68,9 @@ To try and run this application, the following commands and tools are required.
 
 ## Preferences
 
-The `src/main/resources/application.properties` file contains the following information.
-Please edit the OPENAI instance name and connection key below.
+このアプリケーションを動作させるためには Azure OpenAI を作成した後、インスタンス名と接続キーを設定する必要があります。
+設定は `src/main/resources/application.properties` ファイルの中で行います。
+下記の設定ファイルを編集し、Azure OpenAI のインスタンス名と接続キーを設定してください。
 
 ```text
 azure.openai.url=https://YOUR_OWN_OPENAI.openai.azure.com
@@ -76,11 +84,13 @@ logging.level.root=INFO
 
 ## Running the Application
 
+設定を行ったのち、下記のコマンドを実行してください。
+
 ```bash
 ./mvnw spring-boot:run
 ```
 
-When executed, the following message will be output.
+コマンドを実行すると、下記のようなログが表示されます。
 
 ```text
   .   ____          _            __ _ _
@@ -99,17 +109,20 @@ When executed, the following message will be output.
 
 ### Verify operation from browser
 
-Please access `http://localhost:8080`.
-The following screen will be display
+正常にアプリケーションが起動すると、ブラウザから `http://localhost:8080` にアクセスしてください。
+すると、下記のような画面が表示されます。
 
 ![OpenAI-SSE-Chat](https://live.staticflickr.com/65535/52952318155_79f600f97c_c.jpg=800x373)
 
-Please try the following inquiries here.
+ブラウザの画面に表示されている `Submit` ボタンをクリックし、Azure OpenAI に対してリクエストを送信し結果を受信します。
+
+例えば、下記のようなサンプルの文章を入力してください。
+すると Azure OpenAI がメッセージを作成し、受信した文字を順番にブラウザ上に表示します。
 
 ```text
-* The smartwatch I purchased here recently (order number: 12345) was broken. Please replace it immediately.  
-* I recently bought jogging shoes for Father's Day from here, and my father said they were comfortable and easy to exercise in. Thank you very much.  
-* Please tell me your recommended restaurants in Shinjuku.  
-* The other day, when the product I purchased arrived at my home, it was left in front of the entrance even though I didn't have any delivery settings. It's a high-priced item and dangerous, so please don't do it again.
+* "先日こちらで購入した、スマートウォッチ(注文番号 : 12345)が壊れていました。すぐに交換してください。"
+* "最近、こちらで父の日にジョギングシューズを購入しましたが、父が履き心地が良く、運動しやすいと言っていました。ありがとうございます！"
+* "新宿のおすすめのレストランを教えてください。"
+* "先日購入した商品が自宅に届いた際、置き配設定していないのに玄関の前においていかれました。高額商品で危ないので２度とやめてください"
 ```
 
