@@ -3,11 +3,11 @@
 本アプリケーションは、[Azure OpenAI client library for Java - version 1.0.0-beta.1](https://learn.microsoft.com/ja-jp/java/api/overview/azure/ai-openai-readme) を利用して実装した、Server Sent Event を利用して、ChatGPT からの応答を Streaming 形式でブラウザに表示するサンプルです。
 
 ```java
-		<dependency>
-			<groupId>com.azure</groupId>
-			<artifactId>azure-ai-openai</artifactId>
-			<version>1.0.0-beta.1</version>
-		</dependency>
+<dependency>
+	<groupId>com.azure</groupId>
+	<artifactId>azure-ai-openai</artifactId>
+	<version>1.0.0-beta.1</version>
+</dependency>
 ```
 
 本ライブラリを利用する以外に、[RESTful API を利用したサンプル](https://github.com/yoshioterada/Azure-OpenAI-Java-Spring-Sample-for-Chat-GPT-4) もあります。
