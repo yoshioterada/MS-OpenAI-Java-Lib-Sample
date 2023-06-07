@@ -64,15 +64,7 @@ To try and run this application, the following commands and tools are required.
 設定は `src/main/resources/application.properties` ファイルの中で行います。
 下記の設定ファイルを編集し、Azure OpenAI のインスタンス名と接続キーを設定してください。
 
-```text
-azure.openai.url=https://YOUR_OWN_OPENAI.openai.azure.com
-azure.openai.model.path=/openai/deployments/gpt-4/chat/completions?api-version=2023-03-15-preview
-azure.openai.api.key=********************
-
-logging.group.mycustomgroup=com.yoshio3
-logging.level.mycustomgroup=INFO
-logging.level.root=INFO
-```
+https://github.com/yoshioterada/MS-OpenAI-Java-Lib-Sample/blob/633b851d60dc505b85b4c936f43726810d2a13d6/src/main/resources/application.properties#L1-L7
 
 ## Running the Application
 
