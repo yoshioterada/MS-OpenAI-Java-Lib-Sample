@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
-import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -59,7 +58,6 @@ public class VectorTest {
                 .buildClient();
     }
 
-
     public static void main(String[] args) {
         VectorTest test;
         try {
@@ -85,8 +83,7 @@ public class VectorTest {
     }
 
     private void insertDataToPostgreSQL() {
-        try {
-            var connection = DriverManager.getConnection(POSTGRESQL_JDBC_URL, POSTGRESQL_USER, POSTGRESQL_PASSWORD);
+        try (var connection = DriverManager.getConnection(POSTGRESQL_JDBC_URL, POSTGRESQL_USER, POSTGRESQL_PASSWORD)) {
             var insertSql = "INSERT INTO TBL_VECTOR_TEST (id, embedding, origntext) VALUES (?, ?::vector, ?)";
 
             for (String originText : INPUT_DATA) {
@@ -101,22 +98,22 @@ public class VectorTest {
                 insertStatement.setString(3, originText);
                 insertStatement.executeUpdate();
             }
-            connection.close();
         } catch (SQLException | InterruptedException e) {
             LOGGER.error("Connection failure." + e.getMessage());
         }
     }
 
     public void findMostSimilarString(String data) {
-        try (Connection connection = DriverManager.getConnection(POSTGRESQL_JDBC_URL, POSTGRESQL_USER, POSTGRESQL_PASSWORD)) {
+        try (var connection = DriverManager.getConnection(POSTGRESQL_JDBC_URL, POSTGRESQL_USER, POSTGRESQL_PASSWORD)) {
             // ユーザが検索したい文字列をテキスト・エンべディングを呼び出しベクター配列を作成
             List<Double> embedding = invokeTextEmbedding(data);
             String array = embedding.toString();
             LOGGER.info("Embedding: \n" + array);
 
             // ベクター配列で検索 (ユーザーが入力した文字列と最も近い文字列を検索)
-            String querySql = "SELECT origntext FROM TBL_VECTOR_TEST ORDER BY embedding <-> '" + array + "' LIMIT 1;";
+            String querySql = "SELECT origntext FROM TBL_VECTOR_TEST ORDER BY embedding <-> ?::vector LIMIT 1;";
             PreparedStatement queryStatement = connection.prepareStatement(querySql);
+            queryStatement.setString(1, array);
             ResultSet resultSet = queryStatement.executeQuery();
             while (resultSet.next()) {
                 String origntext = resultSet.getString("origntext");
@@ -125,6 +122,5 @@ public class VectorTest {
         } catch (SQLException e) {
             LOGGER.error("Connection failure." + e.getMessage());
         }
-
     }
 }
