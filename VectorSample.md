@@ -372,7 +372,7 @@ https://github.com/yoshioterada/MS-OpenAI-Java-Lib-Sample/blob/bd6c7c1cff34ed93d
 
 クエリーの結果は、オリジナルのテキストを返すように実装しています。
 
-https://github.com/yoshioterada/MS-OpenAI-Java-Lib-Sample/blob/bd6c7c1cff34ed93d51c1ea80df7cabc1b7ba6eb/src/main/java/com/yoshio3/VectorTest.java#L110-L129
+https://github.com/yoshioterada/MS-OpenAI-Java-Lib-Sample/blob/d9a43f1e297efae93ce936f6cb5502a17db1e952/src/main/java/com/yoshio3/VectorTest.java#L106-L125
 
 このように、多次元配列のベクトルを利用する事で、関連性の高いドキュメントを見つけ出す事ができます。  
 このような、ユースケースがある場合は、どうぞお試しください。
