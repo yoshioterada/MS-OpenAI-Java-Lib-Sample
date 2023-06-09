@@ -343,7 +343,7 @@ https://github.com/yoshioterada/MS-OpenAI-Java-Lib-Sample/blob/bd6c7c1cff34ed93d
 下記のメソッドは、事前に用意した文字列の List (INPUT_DATA) から、一つずつ要素を取り出して、Azure OpenAI の Embedded を呼び出し、多次元配列（ベクター）を受け取った後、DB に対して保存しています。
 この処理は、テスト用のデータ挿入なので、一度だけ実行してください。
 
-https://github.com/yoshioterada/MS-OpenAI-Java-Lib-Sample/blob/bd6c7c1cff34ed93d51c1ea80df7cabc1b7ba6eb/src/main/java/com/yoshio3/VectorTest.java#L87-L108
+https://github.com/yoshioterada/MS-OpenAI-Java-Lib-Sample/blob/3a5bd7fa1a13b76d353408451bd244b4c00ef243/src/main/java/com/yoshio3/VectorTest.java#L85-L104
 
 ##### 実装上のポイント 4
 
